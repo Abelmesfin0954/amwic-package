@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Transfer System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+        }
+
+        .container {
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 30px;
+            position: relative;
+        }
+
+        #transactionForm {
+            transition: all 0.3s ease;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #76D75D;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .processing-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .processing-spinner {
+            width: 100px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2ecc71;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #receiptContainer {
+            display: none;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .status-amount {
+            text-align: center;
+            margin: 25px 0;
+        }
+
+        .status {
+            color: #76D75D;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .amount {
+            font-weight: 700;
+            display: flex;
+            font-size: 24px;
+            color: #000000cc;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+              margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .label {
+            color: #7f8c8d;
+            min-width: 120px;
+        }
+
+        .value {
+            color: #2c3e50;
+            font-weight: 400;
+        }
+
+        .slider {
+            position: relative;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .slider img {
+            border-radius: 8px;
+            width: 100%;
+            height: 75px;
+        }
+
+        .slides {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            width: 100%;
+            display: none;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        .dots {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin: 0 2px;
+            background-color: white;
+            border: 2px solid #78BE20;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .dot.active {
+            background-color: #78BE20;
+        }
+
+        .separator {
+            border-bottom: 1px solid #ddd;
+            margin: 15px 0;
+        }
+
+        .qr-section {
+            color: #76D75D;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        .qr-text {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+           color: #76D75D;
+            font-size: 14px;
+        }
+        .qr-text img {
+         color: #76D75D;
+        }
+        .qr-text::after {
+            content: "> ";
+            margin-left: 5px;
+            font-weight: bold;
+        }
+
+        
+        .slider {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
+  overflow: hidden;
+}
+ .slider  img{
+    border-radius: 8px;
+    width: 400px;
+    height: 75px;
+ }
+.slides {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.slide {
+  width: 100%;
+  display: none;
+}
+
+.slide.active {
+  display: block;
+}
+
+.dots {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin: 0 2px;
+  background-color: white;
+  border: 2px solid #78BE20;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dot.active {
+  background-color: #78BE20;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form id="transactionForm">
+            <div class="form-header">
+                <h2>Bank Transfer</h2>
+                <p>Send money to any bank account</p>
+            </div>
+
+            <div class="form-group">
+                <input type="text" class="form-control" id="recipientName" required value="Abel Mesfin" placeholder="Recipient Name" required>
+            </div>
+
+            <div class="form-group">
+                <input type="text" class="form-control" id="accountNumber" required value="100073483624" placeholder="Account Number" required>
+            </div>
+
+            <div class="form-group">
+                <select class="form-control" id="transactionType" required>
+                    <option value="">Select Transaction Type</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Depositing Cash">Depositing Cash</option>
+                    <option value="Airtime Top-Ups">Airtime Top-Ups</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <select class="form-control" id="bankName" required>
+                    <option value="">Select Bank</option>
+                    <option value="Commercial Bank of Ethiopia">Commercial Bank of Ethiopia</option>
+                    <option value="Awash Bank">Awash Bank</option>
+                    <option value="Dashen Bank">Dashen Bank</option>
+                    <option value="Abyssinia Bank">Abyssinia Bank</option>
+                    <option value="Nib International Bank">Nib International Bank</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <input type="number" class="form-control" id="amount" placeholder="Amount (ETB)" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Transfer Money</button>
+        </form>
+
+        <div class="processing-overlay" id="processingOverlay">
+            <div class="processing-spinner"></div>
+            <p style="margin-top: 20px;">Processing Transaction...</p>
+        </div>
+
+        <div id="receiptContainer">
+            <div class="header">
+                <div class="header-controls">
+                    <div class="icon-group">
+                        <svg viewBox="0 0 24 24" fill="#76D75D" width="20">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                        <span style="color: #76D75D;">Download</span>
+                    </div>
+                </div>
+                <div class="header-controls">
+                    <div class="icon-group">
+                        <svg viewBox="0 0 24 24" fill="#76D75D" width="20">
+                            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92zM18 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM6 13c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm12 7.02c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
+                        </svg>
+                        <span style="color: #76D75D;">Share</span>
+                    </div>
+                </div>
+            </div>
+
+            <br>
+            <div class="status-amount">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24" width="60" fill="#76D75D">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <br>
+                <div class="status">Successful</div>
+                <br>
+                <br>
+                <div class="amount" id="receiptAmount">-0.00 ETB</div>
+            </div>
+            <br>
+
+        <div class="separator"></div>
+
+            <div class="details">
+                <div class="detail-row">
+                    <span class="label">Transaction Number:</span>
+                    <span class="value" id="receiptTransactionId"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Transaction Time:</span>
+                    <span class="value" id="receiptDateTime"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Recipient Name:</span>
+                    <span class="value" id="receiptRecipient"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Account Number:</span>
+                    <span class="value" id="receiptAccount"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Transaction Type:</span>
+                    <span class="value" id="receiptTransactionType"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Bank Name:</span>
+                    <span class="value" id="receiptBank"></span>
+                </div>
+            </div>
+   <div class="qr-text"> <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="currentColor" viewBox="0 0 24 24">
+  <path d="M3 3h8v8H3V3Zm2 2v4h4V5H5Zm6 10h2v2h-2v-2Zm0 4h2v2h-2v-2Zm4-4h2v2h-2v-2Zm0 4h4v2h-4v-2Zm4-4h2v2h-2v-2ZM3 13h8v8H3v-8Zm2 2v4h4v-4H5Zm10-12h6v6h-6V3Zm2 2v2h2V5h-2Z"/>
+</svg>
+ QR Code</div>
+ <br>
+  <div class="slider">
+  <div class="slides">
+    <img src="sort (1).jpg" class="slide active">
+    <img src="sort (1).jpg" class="slide">
+    <img src="sort (1).jpg" class="slide">
+    <img src="sort (1).jpg" class="slide">
+    <img src="sort (1).jpg" class="slide">
+  </div>
+  <div class="dots">
+    <span class="dot active" onclick="showSlide(0)"></span>
+    <span class="dot" onclick="showSlide(1)"></span>
+    <span class="dot" onclick="showSlide(2)"></span>
+    <span class="dot" onclick="showSlide(3)"></span>
+    <span class="dot" onclick="showSlide(4)"></span>
+  </div>
+</div>
+            <button class="submit-btn" id="finishButton" style="margin-top: 30px;">
+                Finished
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('transactionForm');
+            const processingOverlay = document.getElementById('processingOverlay');
+            const receiptContainer = document.getElementById('receiptContainer');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = {
+                    recipient: document.getElementById('recipientName').value,
+                    account: document.getElementById('accountNumber').value,
+                    amount: document.getElementById('amount').value,
+                    bank: document.getElementById('bankName').value,
+                    transactionType: document.getElementById('transactionType').value
+                };
+
+                if (!formData.recipient || !formData.account || !formData.amount || 
+                    !formData.bank || !formData.transactionType || formData.amount <= 0) {
+                    alert('Please fill all fields with valid values');
+                    return;
+                }
+
+                form.style.display = 'none';
+                processingOverlay.style.display = 'flex';
+
+                setTimeout(() => {
+                    processingOverlay.style.display = 'none';
+                    showReceipt(formData);
+                }, 2000);
+            });
+
+            function showReceipt(data) {
+                document.getElementById('receiptRecipient').textContent = data.recipient.toUpperCase();
+                document.getElementById('receiptAccount').textContent = data.account;
+                document.getElementById('receiptAmount').textContent = `-${parseFloat(data.amount).toLocaleString()} ETB`;
+                document.getElementById('receiptBank').textContent = data.bank;
+                document.getElementById('receiptTransactionType').textContent = data.transactionType;
+                document.getElementById('receiptTransactionId').textContent = generateTransactionId();
+                document.getElementById('receiptDateTime').textContent = new Date().toLocaleString();
+                receiptContainer.style.display = 'block';
+            }
+
+            function generateTransactionId() {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                return Array.from({length: 10}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+            }
+
+            let currentSlide = 0;
+            const slides = document.querySelectorAll('.slide');
+            setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 3000);
+
+            document.getElementById('finishButton').addEventListener('click', function() {
+                location.reload();
+            });
+        });
+    </script>
+    <script>
+    let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const dots = document.querySelectorAll('.dot');
+
+function showSlide(index) {
+  slides.forEach((slide, i) => {
+    slide.classList.toggle('active', i === index);
+    dots[i].classList.toggle('active', i === index);
+  });
+  currentSlide = index;
+}
+
+// Optional: Auto-slide
+setInterval(() => {
+  currentSlide = (currentSlide + 1) % slides.length;
+  showSlide(currentSlide);
+}, 4000);
+</script>
+</body>
+</html>
